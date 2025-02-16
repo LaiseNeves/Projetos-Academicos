@@ -1,0 +1,70 @@
+link de acesso para o vídeo da tela executando o bingo: https://drive.google.com/file/d/1agYdpSXI03M0zCwigld9EV0maX7iyAo9/view?usp=sharing 
+
+
+
+import random
+
+class Bingo:
+    def __init__(self):
+        self.observers = []  # Lista de observadores
+        self.numeros_sorteados = set()  # Números sorteados no jogo
+
+    def registrar_observador(self, observador):
+        self.observers.append(observador)
+
+    def notificar_observadores(self):
+        for observador in self.observers:
+            observador.verificar_cartela(self.numeros_sorteados)
+
+    def sortear_numero(self):
+        while True:
+            numero = random.randint(1, 75)  # Números de 1 a 75 no bingo
+            if numero not in self.numeros_sorteados:
+                self.numeros_sorteados.add(numero)
+                print(f"Número sorteado: {numero}")
+                self.notificar_observadores()
+                break
+
+
+class Cartela:
+    def __init__(self):
+        self.numeros = self.gerar_cartela()
+        self.preenchidos = set()
+
+    def gerar_cartela(self):
+        cartela = {
+            "B": random.sample(range(1, 16), 5),
+            "I": random.sample(range(16, 31), 5),
+            "N": random.sample(range(31, 46), 4),  
+            "G": random.sample(range(46, 61), 5),
+            "O": random.sample(range(61, 76), 5),
+        }
+    
+        numeros_cartela = [
+            numero for coluna in cartela.values() for numero in coluna
+        ]
+        return numeros_cartela
+
+    def verificar_cartela(self, numeros_sorteados):
+        self.preenchidos = {n for n in self.numeros if n in numeros_sorteados}
+        print(f"Números preenchidos: {sorted(self.preenchidos)}")
+
+        
+        if len(self.preenchidos) == len(self.numeros):
+            print("Bingo! A cartela está cheia!")
+
+
+
+if __name__ == "__main__":
+    bingo = Bingo()
+    cartela = Cartela()
+
+    bingo.registrar_observador(cartela)
+
+    print("Sua cartela:")
+    print(sorted(cartela.numeros))
+
+    
+    while len(cartela.preenchidos) < len(cartela.numeros):
+        input("Pressione Enter para sortear uma bola...")
+        bingo.sortear_numero()
