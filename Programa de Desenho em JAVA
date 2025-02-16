@@ -1,0 +1,199 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.awt.image.RenderedImage;
+import javax.imageio.ImageIO;
+
+
+public class Main extends JFrame {
+   private DrawingPanel drawingPanel; 
+
+   public Main() {
+       setTitle("Desenho com Formas Geométricas");
+       setSize(800, 600);
+       setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+       setLayout(new BorderLayout());
+
+      
+       JPanel buttonPanel = new JPanel();
+       buttonPanel.setLayout(new GridLayout(1, 5));
+
+       
+       JButton saveButton = new JButton("Salvar");
+       JButton loadButton = new JButton("Carregar");
+       JButton shapeButton = new JButton("Forma");
+       JButton colorButton = new JButton("Cor");
+       JButton clearButton = new JButton("Limpar");
+
+
+       buttonPanel.add(saveButton);
+       buttonPanel.add(loadButton);
+       buttonPanel.add(shapeButton);
+       buttonPanel.add(colorButton);
+       buttonPanel.add(clearButton);
+
+    
+       drawingPanel = new DrawingPanel();
+
+      
+       add(buttonPanel, BorderLayout.NORTH);
+       add(drawingPanel, BorderLayout.CENTER);
+
+
+      
+       configureActions(saveButton, loadButton, shapeButton, colorButton, clearButton);
+
+
+       setVisible(true); 
+   }
+
+
+   private void configureActions(JButton save, JButton load, JButton shape, JButton color, JButton clear) {
+       save.addActionListener(e -> drawingPanel.saveImage());
+       load.addActionListener(e -> drawingPanel.loadImage());
+       shape.addActionListener(e -> drawingPanel.selectShape());
+       color.addActionListener(e -> drawingPanel.chooseColor());
+       clear.addActionListener(e -> drawingPanel.clear());
+   }
+
+
+   public static void main(String[] args) {
+       new Main();
+   }
+}
+
+
+class DrawingPanel extends JPanel {
+   private Image canvas; 
+   private Graphics2D g2d; 
+   private Color currentColor = Color.BLACK; 
+   private String currentShape = "Free"; 
+   private int startX, startY, endX, endY; 
+
+
+   public DrawingPanel() {
+       setBackground(Color.WHITE);
+       addMouseListener(new MouseAdapter() {
+           @Override
+           public void mousePressed(MouseEvent e) {
+               startX = e.getX();
+               startY = e.getY();
+           }
+
+
+           @Override
+           public void mouseReleased(MouseEvent e) {
+               endX = e.getX();
+               endY = e.getY();
+               drawShape();
+           }
+       });
+
+
+       addMouseMotionListener(new MouseAdapter() {
+           @Override
+           public void mouseDragged(MouseEvent e) {
+               if (currentShape.equals("Free")) {
+                   endX = e.getX();
+                   endY = e.getY();
+                   drawFreeLine();
+               }
+           }
+       });
+   }
+
+
+   private void drawShape() {
+       if (g2d == null) {
+           prepareCanvas();
+       }
+
+
+       switch (currentShape) {
+           case "Rectangle":
+               g2d.drawRect(Math.min(startX, endX), Math.min(startY, endY),
+                       Math.abs(endX - startX), Math.abs(endY - startY));
+               break;
+           case "Circle":
+               int diameter = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
+               g2d.drawOval(Math.min(startX, endX), Math.min(startY, endY), diameter, diameter);
+               break;
+           
+       }
+       repaint();
+   }
+
+
+   private void drawFreeLine() {
+       if (g2d == null) {
+           prepareCanvas();
+       }
+       g2d.drawLine(startX, startY, endX, endY);
+       startX = endX;
+       startY = endY;
+       repaint();
+   }
+
+
+   private void prepareCanvas() {
+       canvas = createImage(getWidth(), getHeight());
+       g2d = (Graphics2D) canvas.getGraphics();
+       g2d.setColor(currentColor);
+       g2d.setStroke(new BasicStroke(2));
+   }
+
+
+   @Override
+   protected void paintComponent(Graphics g) {
+       super.paintComponent(g);
+       if (canvas != null) {
+           g.drawImage(canvas, 0, 0, null);
+       }
+   }
+
+
+   public void saveImage() {
+       try {
+           File file = new File("drawing.bmp");
+           javax.imageio.ImageIO.write((RenderedImage) canvas, "bmp", file); // Salvar a imagem como BMP
+           JOptionPane.showMessageDialog(this, "Imagem salva com sucesso!");
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
+   }
+
+
+   public void loadImage() {
+       try {
+           File file = new File("drawing.bmp");
+           canvas = javax.imageio.ImageIO.read(file);
+           g2d = (Graphics2D) canvas.getGraphics();
+           repaint();
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
+   }
+
+
+   public void selectShape() {
+       String[] options = {"Free", "Rectangle", "Circle"};
+       currentShape = (String) JOptionPane.showInputDialog(this, "Selecione uma forma:",
+               "Forma", JOptionPane.QUESTION_MESSAGE, null, options, currentShape);
+   }
+
+
+   public void chooseColor() {
+       currentColor = JColorChooser.showDialog(this, "Escolha uma cor", currentColor);
+       if (g2d != null) {
+           g2d.setColor(currentColor);
+       }
+   }
+
+
+   public void clear() {
+       canvas = null;
+       g2d = null;
+       repaint();
+   }
+}
