@@ -1,5 +1,2 @@
-Esse repositorio possui meus projetos academicos desenvolvidos nos cursos: 
-1. Analise e desenvolvimento de sistemas - Belas Artes EAD
-
-Em breve: 
-Curso Treinamento do Azure / Microsoft 
+🦊 Esse repositorio reúne meus projetos academicos desenvolvidos 
+🦉 Contem códigos de aplicações e outras mídias como power point, relatório de análise etc 
